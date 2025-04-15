@@ -1,6 +1,6 @@
-# Dot Sphere with Sound
+# Dot Sphere with Ryoji Ikeda-inspired Sound
 
-An interactive 3D visualization of a sphere made of dots that occasionally glitches, accompanied by a minimalist sound design.
+An interactive 3D visualization of a sphere made of dots that occasionally glitches, accompanied by a minimalist sound design inspired by Ryoji Ikeda's work.
 
 ## Features
 
