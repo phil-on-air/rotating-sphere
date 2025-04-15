@@ -3,9 +3,12 @@ let audioContext;
 let droneOscillator;
 let droneGain;
 let masterGain;
+let audioInitialized = false;
 
 // Initialize audio
 function initAudio() {
+    if (audioInitialized) return;
+    
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioContext.createGain();
     masterGain.gain.value = 0.3;
@@ -13,6 +16,7 @@ function initAudio() {
 
     // Create drone sound
     createDrone();
+    audioInitialized = true;
 }
 
 function createDrone() {
@@ -51,6 +55,8 @@ function modulateDrone() {
 }
 
 function createGlitchSound() {
+    if (!audioInitialized) return;
+    
     const now = audioContext.currentTime;
     
     // Create multiple short beeps
@@ -136,9 +142,7 @@ function startGlitch() {
         const duration = 100 + Math.random() * 200;
         
         // Play glitch sound if audio is initialized
-        if (audioContext) {
-            createGlitchSound();
-        }
+        createGlitchSound();
         
         setTimeout(() => {
             isGlitching = false;
@@ -185,18 +189,24 @@ window.addEventListener('resize', () => {
     renderer.setSize(width, height);
 });
 
-// Start button handler
-const startButton = document.getElementById('startButton');
-startButton.addEventListener('click', () => {
-    initAudio();
-    startButton.style.display = 'none';
-    // Start animation and glitch effect
-    animate();
-    scheduleNextGlitch();
+// Audio toggle functionality
+const audioToggle = document.getElementById('audioToggle');
+const audioIcon = audioToggle.querySelector('i');
+
+function updateAudioIcon(isMuted) {
+    audioIcon.className = isMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+}
+
+audioToggle.addEventListener('click', () => {
+    if (!audioInitialized) {
+        initAudio();
+    } else {
+        const isMuted = masterGain.gain.value > 0;
+        masterGain.gain.value = isMuted ? 0 : 0.3;
+        updateAudioIcon(isMuted);
+    }
 });
 
-// Hide three.js content until audio is started
-renderer.domElement.style.display = 'none';
-startButton.addEventListener('click', () => {
-    renderer.domElement.style.display = 'block';
-}); 
+// Start animation immediately
+animate();
+scheduleNextGlitch(); 

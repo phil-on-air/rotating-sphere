@@ -24,10 +24,12 @@ An interactive 3D visualization of a sphere made of dots that occasionally glitc
 3. Click the "START AUDIO" button to begin the experience
 4. For the best experience, use headphones
 
+## Demo
+
+Experience the live demo at [https://phil-on-air.github.io/rotating-sphere](https://phil-on-air.github.io/rotating-sphere)
+
+Note: Please allow a few minutes for the GitHub Pages deployment to complete after visiting the demo URL for the first time.
+
 ## License
 
 MIT License 
-
-## Demo
-
-Check out the live demo at https://phil-on-air.github.io/rotating-sphere
