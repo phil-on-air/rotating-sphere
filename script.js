@@ -19,6 +19,13 @@ function initAudio() {
     audioInitialized = true;
 }
 
+// Try to initialize audio immediately
+try {
+    initAudio();
+} catch (e) {
+    console.log('Audio will be initialized on first interaction');
+}
+
 function createDrone() {
     // Create and configure drone oscillator
     droneOscillator = audioContext.createOscillator();
@@ -200,12 +207,18 @@ function updateAudioIcon(isMuted) {
 audioToggle.addEventListener('click', () => {
     if (!audioInitialized) {
         initAudio();
-    } else {
-        const isMuted = masterGain.gain.value > 0;
-        masterGain.gain.value = isMuted ? 0 : 0.3;
-        updateAudioIcon(isMuted);
     }
+    const isMuted = masterGain.gain.value > 0;
+    masterGain.gain.value = isMuted ? 0 : 0.3;
+    updateAudioIcon(isMuted);
 });
+
+// Add interaction listener for browsers that require user interaction
+document.addEventListener('click', () => {
+    if (!audioInitialized) {
+        initAudio();
+    }
+}, { once: true });
 
 // Start animation immediately
 animate();
