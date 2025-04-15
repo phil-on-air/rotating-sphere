@@ -1,9 +1,10 @@
 // Audio Context setup
 let audioContext;
-let droneOscillator;
-let droneGain;
 let masterGain;
 let audioInitialized = false;
+let droneGains = [];
+let droneOscillators = [];
+let lfoOscillator;
 
 // Initialize audio
 function initAudio() {
@@ -19,46 +20,127 @@ function initAudio() {
     audioInitialized = true;
 }
 
+function createDrone() {
+    // Create main oscillator (55 Hz - Low A)
+    createDroneOscillator(55, 'sine', 0.1);
+    
+    // Create subtle fifth harmony (82.5 Hz)
+    createDroneOscillator(82.5, 'sine', 0.03);
+    
+    // Create upper octave with slight detune
+    createDroneOscillator(110.2, 'sine', 0.02);
+    
+    // Create subtle high harmony
+    createDroneOscillator(220.4, 'sine', 0.015);
+
+    // Add a very quiet noise component for texture
+    createNoiseComponent();
+
+    // Create LFO for subtle amplitude modulation
+    createAmplitudeLFO();
+
+    // Start modulation
+    modulateDrone();
+}
+
+function createDroneOscillator(frequency, type, gainValue) {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const filter = audioContext.createBiquadFilter();
+    
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    
+    filter.type = 'lowpass';
+    filter.frequency.value = 400;
+    filter.Q.value = 1;
+    
+    gain.gain.value = gainValue;
+    
+    oscillator.connect(filter);
+    filter.connect(gain);
+    gain.connect(masterGain);
+    
+    oscillator.start();
+    
+    droneOscillators.push(oscillator);
+    droneGains.push(gain);
+}
+
+function createNoiseComponent() {
+    const bufferSize = 2 * audioContext.sampleRate;
+    const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    
+    for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+    }
+    
+    const noise = audioContext.createBufferSource();
+    noise.buffer = noiseBuffer;
+    noise.loop = true;
+    
+    const noiseFilter = audioContext.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.value = 100;
+    noiseFilter.Q.value = 0.5;
+    
+    const noiseGain = audioContext.createGain();
+    noiseGain.gain.value = 0.005;
+    
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(masterGain);
+    
+    noise.start();
+}
+
+function createAmplitudeLFO() {
+    lfoOscillator = audioContext.createOscillator();
+    const lfoGain = audioContext.createGain();
+    
+    lfoOscillator.frequency.value = 0.1; // Very slow modulation
+    lfoGain.gain.value = 0.1;
+    
+    lfoOscillator.connect(lfoGain);
+    
+    // Connect LFO to all drone gains
+    droneGains.forEach(gain => {
+        lfoGain.connect(gain.gain);
+    });
+    
+    lfoOscillator.start();
+}
+
+function modulateDrone() {
+    const now = audioContext.currentTime;
+    const modulationDuration = 8 + Math.random() * 4; // Random duration between 8-12 seconds
+    
+    // Modulate each oscillator slightly differently
+    droneOscillators.forEach((osc, index) => {
+        const baseFreq = [55, 82.5, 110.2, 220.4][index];
+        const modAmount = 2 + Math.random() * 2; // Random modulation amount between 2-4 Hz
+        
+        osc.frequency.setValueAtTime(baseFreq, now);
+        osc.frequency.linearRampToValueAtTime(
+            baseFreq + modAmount, 
+            now + modulationDuration / 2
+        );
+        osc.frequency.linearRampToValueAtTime(
+            baseFreq, 
+            now + modulationDuration
+        );
+    });
+    
+    // Schedule next modulation
+    setTimeout(modulateDrone, modulationDuration * 1000);
+}
+
 // Try to initialize audio immediately
 try {
     initAudio();
 } catch (e) {
     console.log('Audio will be initialized on first interaction');
-}
-
-function createDrone() {
-    // Create and configure drone oscillator
-    droneOscillator = audioContext.createOscillator();
-    droneOscillator.type = 'sine';
-    droneOscillator.frequency.value = 55; // Low A
-
-    // Create gain node for drone
-    droneGain = audioContext.createGain();
-    droneGain.gain.value = 0.1;
-
-    // Create filter for drone
-    const droneFilter = audioContext.createBiquadFilter();
-    droneFilter.type = 'lowpass';
-    droneFilter.frequency.value = 200;
-
-    // Connect drone components
-    droneOscillator.connect(droneFilter);
-    droneFilter.connect(droneGain);
-    droneGain.connect(masterGain);
-
-    // Start drone
-    droneOscillator.start();
-
-    // Add subtle modulation to drone
-    modulateDrone();
-}
-
-function modulateDrone() {
-    const now = audioContext.currentTime;
-    droneOscillator.frequency.setValueAtTime(55, now);
-    droneOscillator.frequency.linearRampToValueAtTime(57, now + 4);
-    droneOscillator.frequency.linearRampToValueAtTime(55, now + 8);
-    setTimeout(modulateDrone, 8000);
 }
 
 function createGlitchSound() {
