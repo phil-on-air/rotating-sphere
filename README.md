@@ -27,3 +27,7 @@ An interactive 3D visualization of a sphere made of dots that occasionally glitc
 ## License
 
 MIT License 
+
+## Demo
+
+Check out the live demo at https://phil-on-air.github.io/rotating-sphere
