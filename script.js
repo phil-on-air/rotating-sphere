@@ -5,6 +5,10 @@ let audioInitialized = false;
 let droneGains = [];
 let droneOscillators = [];
 let lfoOscillator;
+let lfoGain;
+let lfoOffset;
+let detuneIntervals = [];
+let isMuted = true; // Track mute state, default to true
 
 // Initialize audio
 function initAudio() {
@@ -12,7 +16,7 @@ function initAudio() {
     
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioContext.createGain();
-    masterGain.gain.value = 0.3;
+    masterGain.gain.value = 0; // Start muted
     masterGain.connect(audioContext.destination);
 
     // Create drone sound
@@ -41,6 +45,8 @@ function createDrone() {
 
     // Start modulation
     modulateDrone();
+    // Start slow detune drift
+    startDetuneDrift();
 }
 
 function createDroneOscillator(frequency, type, gainValue) {
@@ -50,6 +56,7 @@ function createDroneOscillator(frequency, type, gainValue) {
     
     oscillator.type = type;
     oscillator.frequency.value = frequency;
+    oscillator.detune.value = (Math.random() - 0.5) * 2; // initial slight detune
     
     filter.type = 'lowpass';
     filter.frequency.value = 400;
@@ -97,19 +104,19 @@ function createNoiseComponent() {
 
 function createAmplitudeLFO() {
     lfoOscillator = audioContext.createOscillator();
-    const lfoGain = audioContext.createGain();
+    lfoGain = audioContext.createGain();
+    lfoOffset = audioContext.createConstantSource();
     
-    lfoOscillator.frequency.value = 0.1; // Very slow modulation
-    lfoGain.gain.value = 0.1;
+    lfoOscillator.frequency.value = 0.025; // Slower LFO (was 0.1)
+    lfoGain.gain.value = 0.08; // LFO depth (max swing)
+    lfoOffset.offset.value = 0.07; // Minimum gain (never fades out)
     
     lfoOscillator.connect(lfoGain);
-    
-    // Connect LFO to all drone gains
-    droneGains.forEach(gain => {
-        lfoGain.connect(gain.gain);
-    });
+    lfoGain.connect(masterGain.gain);
+    lfoOffset.connect(masterGain.gain);
     
     lfoOscillator.start();
+    lfoOffset.start();
 }
 
 function modulateDrone() {
@@ -134,6 +141,18 @@ function modulateDrone() {
     
     // Schedule next modulation
     setTimeout(modulateDrone, modulationDuration * 1000);
+}
+
+function startDetuneDrift() {
+    droneOscillators.forEach((osc, idx) => {
+        function drift() {
+            const now = audioContext.currentTime;
+            const driftAmount = (Math.random() - 0.5) * 8; // up to +/-4 cents
+            osc.detune.linearRampToValueAtTime(driftAmount, now + 10 + Math.random() * 10); // drift over 10-20s
+            detuneIntervals[idx] = setTimeout(drift, 10000 + Math.random() * 10000);
+        }
+        drift();
+    });
 }
 
 // Try to initialize audio immediately
@@ -282,17 +301,42 @@ window.addEventListener('resize', () => {
 const audioToggle = document.getElementById('audioToggle');
 const audioIcon = audioToggle.querySelector('i');
 
-function updateAudioIcon(isMuted) {
-    audioIcon.className = isMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+function updateAudioIcon(isMutedNow) {
+    audioIcon.className = isMutedNow ? 'fas fa-volume-mute' : 'fas fa-volume-up';
 }
+
+function muteAudio() {
+    if (lfoGain && lfoOffset) {
+        lfoGain.disconnect();
+        lfoOffset.disconnect();
+    }
+    masterGain.gain.value = 0;
+    isMuted = true;
+    updateAudioIcon(true);
+}
+
+function unmuteAudio() {
+    if (lfoGain && lfoOffset) {
+        lfoGain.connect(masterGain.gain);
+        lfoOffset.connect(masterGain.gain);
+    }
+    masterGain.gain.value = 0.3;
+    isMuted = false;
+    updateAudioIcon(false);
+}
+
+// Set initial icon state
+updateAudioIcon(true);
 
 audioToggle.addEventListener('click', () => {
     if (!audioInitialized) {
         initAudio();
     }
-    const isMuted = masterGain.gain.value > 0;
-    masterGain.gain.value = isMuted ? 0 : 0.3;
-    updateAudioIcon(isMuted);
+    if (isMuted) {
+        unmuteAudio();
+    } else {
+        muteAudio();
+    }
 });
 
 // Add interaction listener for browsers that require user interaction
