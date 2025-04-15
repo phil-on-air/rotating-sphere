@@ -2,6 +2,10 @@
 
 An interactive 3D visualization of a sphere made of dots that occasionally glitches, accompanied by a minimalist sound design inspired by Ryoji Ikeda's work.
 
+## Demo
+
+Experience the live demo at [https://phil-on-air.github.io/rotating-sphere](https://phil-on-air.github.io/rotating-sphere)
+
 ## Features
 
 - Rotating sphere constructed from points in 3D space
@@ -19,16 +23,13 @@ An interactive 3D visualization of a sphere made of dots that occasionally glitc
 
 ## Usage
 
+1. Visit the [live demo](https://phil-on-air.github.io/rotating-sphere)
+2. Click the speaker icon in the top-right corner to toggle sound
+3. For the best experience, use headphones
+
+To run locally:
 1. Clone the repository
 2. Open `index.html` in a modern web browser
-3. Click the "START AUDIO" button to begin the experience
-4. For the best experience, use headphones
-
-## Demo
-
-Experience the live demo at [https://phil-on-air.github.io/rotating-sphere](https://phil-on-air.github.io/rotating-sphere)
-
-Note: Please allow a few minutes for the GitHub Pages deployment to complete after visiting the demo URL for the first time.
 
 ## License
 
