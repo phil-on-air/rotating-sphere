@@ -47,9 +47,15 @@
     <button id="audioToggle" aria-label="Toggle sound">
         <i class="fas fa-volume-up"></i>
     </button>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" 
-        integrity="sha384-j7xQTyN9ZVjmHOJH7LmHh0QxmcyXEmSZOjZBvhHnZx8pDzR2C4xBhyHBuOqcv1Qy" 
-        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <script>
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript error:', e.message);
+            console.error('File:', e.filename);
+            console.error('Line:', e.lineno);
+            console.error('Column:', e.colno);
+        });
+    </script>
     <script src="script.js"></script>
     <script src="code-flicks.js"></script>
 </body>

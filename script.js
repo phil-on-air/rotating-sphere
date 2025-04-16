@@ -195,8 +195,9 @@ function createGlitchSound() {
 // Set up scene, camera, and renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 
 // Create a sphere of dots
@@ -210,8 +211,11 @@ const geometry = new THREE.BufferGeometry();
 const positions = new Float32Array(particles * 3);
 const material = new THREE.PointsMaterial({
     color: 0xffffff,
-    size: 0.05,
-    sizeAttenuation: true
+    size: 0.1,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 1.0,
+    blending: THREE.AdditiveBlending
 });
 
 // Calculate positions for each dot on the sphere
